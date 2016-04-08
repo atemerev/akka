@@ -149,7 +149,10 @@ final case class ConsistentHashingRoutingLogic(
   def this(system: ActorSystem) =
     this(system, virtualNodesFactor = 0, hashMapping = ConsistentHashingRouter.emptyConsistentHashMapping)
 
-  private val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
+  // important that this is lazy, because consistent hashing routing pool is used by SimpleDnsManager
+  // that can be activated early, before the transport defaultAddress is set in the startup
+  // see issue #20263
+  private lazy val selfAddress = system.asInstanceOf[ExtendedActorSystem].provider.getDefaultAddress
   val vnodes =
     if (virtualNodesFactor == 0) system.settings.DefaultVirtualNodesFactor
     else virtualNodesFactor
